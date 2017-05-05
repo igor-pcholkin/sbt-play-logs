@@ -1,0 +1,1 @@
+GET    /logs                    controllers.LogsController.sendLogFiles()

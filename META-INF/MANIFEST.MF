@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Implementation-Title: sbt-play-logs
+Implementation-Version: 1.0.0
+Specification-Vendor: org.random
+Specification-Title: sbt-play-logs
+Implementation-Vendor-Id: org.random
+Specification-Version: 1.0.0
+Implementation-Vendor: org.random
+
