@@ -9,4 +9,6 @@ Example commands:
 
 sbt addLogsEndpoints - add REST endpoint to list log files (i.e. contents of /log folder) of monitored application.
 
-
+NB! In case if project using this plugin also uses sbteclipse plugin it could be necessary to ensure that both use
+the same scalaz versions. Current configuration supposes that sbteclipse 4.0.0 could be used (with scalaz version 7.1.0).
+If versions don't match NoClassDefFoundError could be thrown.
