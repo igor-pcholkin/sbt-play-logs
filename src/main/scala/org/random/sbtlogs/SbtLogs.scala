@@ -21,10 +21,7 @@ object SbtLogs extends AutoPlugin {
     addLogsEndpointsSetting)
 
   def addLogsEndpointsSetting: Setting[_] = addLogsEndpoints := {
-    val validatedEffects = for {
-      effect <- Seq(addController, addRouteEntries)
-    } yield (effect)
-
+    val validatedEffects = Seq(addController, addRouteEntries)
     validatedEffects.reduce { (validatedEffect, newEffect) =>
       if (validatedEffect.isLeft)
         validatedEffect
