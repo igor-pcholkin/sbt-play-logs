@@ -1,9 +1,14 @@
 package org.random.sbtlogs
 
-import sbt._
-import Keys._
 import java.io.FileWriter
+
 import scala.io.Source
+
+import sbt._
+import sbt.Keys._
+import scalaz._
+import scalaz.Scalaz._
+import scalaz.effect.IO
 
 object SbtLogs extends AutoPlugin {
   object autoImport {
@@ -16,20 +21,44 @@ object SbtLogs extends AutoPlugin {
     addLogsEndpointsSetting)
 
   def addLogsEndpointsSetting: Setting[_] = addLogsEndpoints := {
-    addRouteEntries
-    addController
+    val validatedEffects = for {
+      effect <- Seq(addController, addRouteEntries)
+    } yield (effect)
+
+    validatedEffects.reduce { (validatedEffect, newEffect) =>
+      if (validatedEffect.isLeft)
+        validatedEffect
+      else if (newEffect.isLeft)
+        newEffect
+      else validatedEffect |+| newEffect
+    }.fold(onFailure, onSuccess)
+  }
+
+  def onFailure(error: String) = {
+    scala.Console.err.println(error)
+  }
+
+  def onSuccess(effect: IO[Unit]) = {
+    effect.unsafePerformIO()
     println("Added log endpoints.")
   }
 
   def addRouteEntries = {
     val logRoutes = getResourceFileContents("routes.append")
-    addTextToFile("./conf/routes", logRoutes)
+    val writeFile = "./conf/routes"
+    if (new File(writeFile).exists()) {
+      IO {
+        addTextToFile(writeFile, logRoutes)
+      }.right
+    } else {
+      s"$writeFile doesn't exist. Aborting.".left
+    }
   }
 
-  def addController = {
-    val controllerSource = getResourceFileContents("LogsController.scala")
+  def addController = IO {
+    val controllerSource = getResourceFileContents("LogsController.scala.template")
     addTextToFile("./app/controllers/LogsController.scala", controllerSource)
-  }
+  }.right
 
   def getResourceFileContents(fileName: String) = {
     val resourceStream = getClass().getResourceAsStream("/" + fileName)
